@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import re
 import os
 from telegram import Update
@@ -43,6 +44,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
         action='typing'
     )
+    await asyncio.sleep(3)
 
     # Инициализация состояния пользователя
     user_states[user_id] = {
@@ -50,7 +52,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'name': update.effective_user.first_name,
         'task_active': True
     }
-
+    await asyncio.sleep(30)
     # Начало первого задания
     await update.message.reply_text(
         "Зафиксирован запуск системы. Подключение к каналу установлено. "
@@ -326,8 +328,6 @@ async def handle_day5(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await asyncio.sleep(2)
 
         await update.message.reply_text(
-            "🎁 *Официальное вручение артефакта доступа:*\n\n"
-            "Итак, сотрудник, прими свой пропуск в аномальную зону!\n\n"
             f"С Днём Рождения, {user_name}! Желаю тебе самых невероятных открытий "
             "в этой и многих будущих экспедициях!\n\n"
             "Конец связи... или только начало? 🗝️"
@@ -360,14 +360,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         task_status = "активно" if user_states[user_id].get('task_active', False) else "неактивно"
 
-        await update.message.reply_text(
-            f"📊 Статус подготовки:\n"
-            f"Текущий день: {current_day + 1}\n"
-            f"Задание: {day_descriptions.get(current_day, 'Неизвестно')}\n"
-            f"Статус задания: {task_status}\n\n"
-            f"{'Продолжайте выполнение задания' if user_states[user_id].get('task_active', False) else 'Для активации задания введите \"готов\"'}.\n\n"
-            "Для связи с куратором обратись к своему Проводнику."
-        )
+        state = "Продолжайте выполнение задания" if user_states[user_id].get('task_active', False) else 'Для активации задания введите \"готов\"'
+
+        await update.message.reply_text(f"📊 Статус подготовки:\nТекущий день: {current_day + 1}\nЗадание: {day_descriptions.get(current_day, 'Неизвестно')}\nСтатус задания: {task_status}\n\n{state}\nДля связи с куратором обратись к своему Проводнику.")
     else:
         await update.message.reply_text(
             "🛸 Лаборатория Изучения Пограничных Состояний\n\n"
@@ -442,13 +437,8 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
 
         status = "активно" if task_active else "неактивно"
-
-        await update.message.reply_text(
-            f"📊 Статус подготовки:\n"
-            f"Текущий этап: {day_names.get(current_day, 'Неизвестно')}\n"
-            f"Задание: {status}\n\n"
-            f"{'Продолжайте выполнение задания' if task_active else 'Для активации задания введите \"готов\"'}"
-        )
+        state = "Продолжайте выполнение задания" if task_active else 'Для активации задания введите \"готов\"'
+        await update.message.reply_text(f"📊 Статус подготовки:\nТекущий этап: {day_names.get(current_day, 'Неизвестно')}\nЗадание: {status}\n\n{state}")
     else:
         await update.message.reply_text("Подготовка не начата. Используй /start для начала квеста.")
 
